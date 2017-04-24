@@ -64,7 +64,7 @@ error_reporting(0);
 			if($this->get_request_method() != "GET"){
 				$this->response('',406);
 			}
-			$query="SELECT distinct c.id, c.Name, c.Email, c.Date, c.isadmin FROM user_info c order by c.id desc";
+			$query="SELECT distinct c.id, c.Name, c.Email, c.created_date, c.isadmin FROM user_info c order by c.id desc";
 			$r = $this->mysqli->query($query) or die($this->mysqli->error.__LINE__);
 
 			if($r->num_rows > 0){
@@ -82,7 +82,7 @@ error_reporting(0);
 			}
 			$id = (int)$this->_request['id'];
 			if($id > 0){	
-				$query="SELECT distinct c.id, c.Name, c.Email, c.Date, c.isadmin FROM user_info c where c.id=$id";
+				$query="SELECT distinct c.id, c.Name, c.Email, c.created_date, c.isadmin FROM user_info c where c.id=$id";
 				$r = $this->mysqli->query($query) or die($this->mysqli->error.__LINE__);
 				if($r->num_rows > 0) {
 					$result = $r->fetch_assoc();	
@@ -131,7 +131,7 @@ error_reporting(0);
 			}
 			
 			$query = "INSERT INTO user_info(".trim($columns,',').") VALUES(".trim($values1,',').")";
-			echo $query;
+			//echo $query;
 			if(!empty($user)){
 				$r = $this->mysqli->query($query) or die($this->mysqli->error.__LINE__);
 				$success = array('status' => "Success", "msg" => "User Created Successfully.", "data" => $user);
@@ -139,28 +139,39 @@ error_reporting(0);
 			}else
 				$this->response('',204);	//"No Content" status
 		}
-		private function updateCustomer(){
-			if($this->get_request_method() != "POST"){
+		
+		
+		private function updateUser(){
+			if($this->get_request_method() != "PUT"){
 				$this->response('',406);
 			}
 			$customer = json_decode(file_get_contents("php://input"),true);
-			$id = (int)$customer['id'];
-			$column_names = array('customerName', 'email', 'city', 'address', 'country');
+			//print_r($customer);
+			//$id = (int)$customer['id'];
+			$id = $_GET['id'];
+			//echo $id;
+			$column_names = array('Name', 'Email' , 'created_date', 'isadmin');
 			$keys = array_keys($customer['customer']);
 			$columns = '';
 			$values = '';
-			foreach($column_names as $desired_key){ // Check the customer received. If key does not exist, insert blank into the array.
-			   if(!in_array($desired_key, $keys)) {
-			   		$$desired_key = '';
-				}else{
-					$$desired_key = $customer['customer'][$desired_key];
-				}
+			$values1 = '';
+			foreach($column_names as $desired_key){ 
+			   //if(!in_array($desired_key, $keys)) {
+			   	//	$$desired_key = '';
+				//}else{
+				//	$$desired_key = $customer['customer'][$desired_key];
+				//}
+                $$desired_key = $customer[$desired_key];
 				$columns = $columns.$desired_key."='".$$desired_key."',";
+			
 			}
-			$query = "UPDATE angularcode_customers SET ".trim($columns,',')." WHERE customerNumber=$id";
+		
+			
+			$query = "UPDATE user_info SET ".trim($columns,',')." WHERE id=$id";
+			//echo $query;
 			if(!empty($customer)){
 				$r = $this->mysqli->query($query) or die($this->mysqli->error.__LINE__);
-				$success = array('status' => "Success", "msg" => "Customer ".$id." Updated Successfully.", "data" => $customer);
+				$success = array('status' => "Success", "msg" => "User ".$id." Updated Successfully.", "data" => $customer);
 				$this->response($this->json($success),200);
 			}else
 				$this->response('',204);	// "No Content" status
